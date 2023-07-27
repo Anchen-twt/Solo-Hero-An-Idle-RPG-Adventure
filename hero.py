@@ -12,6 +12,8 @@ class Hero:
         self.exp_rate = 1.0  # 经验获得倍率
         self.growth_start_time = time.time()  # 成长开始时间
         self.output_start_time = time.time()  # 输出开始时间
+        self.last_skill_time = time.time()  # 上一次技能触发的时间
+        self.last_pickup_time = time.time()  # 上次捡起物品时间
         self.total_damage = 0  # 总输出
         self.kill_count = 0  # 杀怪数
         self.level_up_count = 0  # 升级数
@@ -53,13 +55,20 @@ class Hero:
     def hunters_might(self, monster):
         if monster.hp <= 0 and self.level >= 15:  # 如果杀死了怪物且等级大于等于15
             self.base_damage += 1  # 增加基础伤害
-            print(f"{self.name} 的猎杀之力发动了！现在的基础伤害是 {self.base_damage}。")
+            current_time = time.time()  # 获取当前时间
+            if current_time - self.last_skill_time >= 3:  # 如果距离上次技能触发超过10秒
+                self.base_damage += 1  # 增加基础伤害
+                print(f"{self.name} 的猎杀之力发动了！现在的基础伤害是 {self.base_damage}。")
+                self.last_skill_time = current_time  # 更新上一次技能触发的时间
     
     def slash(self, monster):
         if self.level >= 25:  # 如果等级大于等于25，使用连斩技能
             chance = random.random()  # 获取随机数
             if chance <= 0.125:  # 如果随机数小于等于0.125，即12.5%概率
-                print(f"{self.name} 触发了连斩！")
+                current_time = time.time()  # 获取当前时间
+                if current_time - self.last_skill_time >= 3:  # 如果距离上次技能触发超过10秒
+                    print(f"{self.name} 触发了连斩！")
+                    self.last_skill_time = current_time  # 更新上一次技能触发的时间
                 self.attack(monster)  # 再攻击一次
                 self.slash(monster)   # 再尝试触发连斩
     
@@ -81,8 +90,12 @@ class Hero:
     
     def use_item(self, item):
         if item == "史莱姆球":
-            self.exp_rate *= 1.01  # 增加1%经验获得倍率            
-            print(f"{self.name} 捡起了 {item}，现在的经验获得倍率是 {self.exp_rate:.2f}。")
+            self.exp_rate *= 1.01  # 增加1%经验获得倍率
+            current_time = time.time()  # 获取当前时间
+            if current_time - self.last_pickup_time >= 3:  # 如果距离上次技能触发超过10秒
+                print(f"{self.name} 捡起了 {item}，现在的经验获得倍率是 {self.exp_rate:.2f}。")
+                self.last_pickup_time = current_time  # 更新上一次技能触发的时间         
+
     
     def pick_up_item(self, item):
         if item is not None:
