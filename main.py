@@ -3,7 +3,7 @@ import time
 from hero import Hero   # 导入hero模块中的Hero类
 from monster import Monster   # 导入monster模块中的Monster类
 
-hero = Hero("勇者", attack_speed=0.01)  
+hero = Hero("勇者", attack_speed=2)  
 monster = Monster("史莱姆", 10000)  
 
 last_attack_time = time.time()
@@ -18,9 +18,8 @@ while True:
 
     if monster.hp <= 0:
         item = monster.drop_item()
-        if item == "史莱姆球":
-            # 处理掉落物品
-            hero.pick_up_item("史莱姆球")
-            hero.use_item("史莱姆球")
-            pass
+        # 处理掉落物品
+        hero.pick_up_item(item)
+        hero.use_item(item)
+        pass
         monster = Monster("史莱姆", 10000)  # 生成一个新的史莱姆
