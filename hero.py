@@ -1,5 +1,6 @@
 import time
 import random
+import threading
 
 class Hero:
     def __init__(self, name, level=1, exp=0, gold=0, attack_speed=1):
@@ -9,8 +10,8 @@ class Hero:
         self.gold = gold  # 勇者金币
         self.attack_speed = attack_speed  # 勇者攻速
         self.base_atk = 10  # 勇者基础攻击
-        self.final_atk = self.level * self.base_atk
         self.final_atk_bonus = 0
+        self.final_atk = self.level * self.base_atk + self.final_atk_bonus
         self.exp_rate = 1.0  # 经验获得倍率
         self.growth_start_time = time.time()  # 成长开始时间
         self.output_start_time = time.time()  # 输出开始时间
@@ -28,7 +29,7 @@ class Hero:
         self.threshold_exp = 2 ** (self.level - 1) * 10
         while self.exp >= self.threshold_exp:  # 如果经验达到升级条件
             self.level += 1  # 升级
-            self.final_atk = self.level * self.base_atk  # 更新最终攻击
+            self.final_atk = self.level * self.base_atk + self.final_atk_bonus  # 更新最终攻击
             self.exp -= self.threshold_exp  # 减少经验
             # 处理技能获得
             self.skill_get = ""
@@ -51,6 +52,7 @@ class Hero:
         if monster.hp <= 0 and self.level >= 15:  # 如果杀死了怪物且等级大于等于15
             self.last_skill = "猎杀之力"  # 记录使用的技能
             self.final_atk_bonus += 1  # 增加最终攻击
+            self.final_atk = self.level * self.base_atk + self.final_atk_bonus
     
     def slash(self, monster):
         if self.level >= 25:  # 如果等级大于等于25，使用连斩技能
@@ -81,10 +83,22 @@ class Hero:
             self.output_start_time = current_time
             
     def use_item(self, item):
+        """管理物品效果"""
         if item == "史莱姆球":
             self.exp_rate += 0.01  # 增加1%经验获得倍率
         elif item == "哥布林之斧":
             self.base_atk += 0.1
+        elif item == "巨龙之心":
+            chance = random.random()  # 获取随机数
+            count = self.inventory.count("巨龙之心")  # 获取物品个数
+            if chance <= 0.015 * count:  # 如果随机数小于等于概率
+                self.last_skill = "龙之心"  # 记录使用的技能
+                self.attack_speed = 0.02  # 设置攻速为0.02s/次
+                threading.Timer(5, self.reset_attack_speed).start()  # 5秒后恢复攻速
+
+    def reset_attack_speed(self):
+        """恢复攻速"""
+        self.attack_speed = self.attack_speed
     
     def pick_up_item(self, item):
         if item is not None:
