@@ -14,7 +14,13 @@ class Monster:
                 return None
         elif self.name == "哥布林":
             if random.random() < 0.25:  # 有25%的概率掉落物品
-                return ""
+                return "哥布林之斧"
+        elif self.name == "巨龙":
+            if random.random() < 0.25:  # 有25%的概率掉落物品
+                return "龙之心"
             
-slime = Monster("史莱姆", 10000)
-goblin = Monster ("哥布林", 50000)
+monster_types = {
+    "史莱姆": Monster("史莱姆", 10000),
+    "哥布林": Monster("哥布林", 20000),
+    "巨龙": Monster("巨龙", 50000)
+}
