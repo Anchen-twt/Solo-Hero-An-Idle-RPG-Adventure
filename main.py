@@ -4,7 +4,7 @@ import threading
 from hero import Hero   # 导入hero模块中的Hero类
 from monster import monster_types   # 导入monster模块
 
-hero = Hero("勇者", attack_speed=2)
+hero = Hero("勇者", attack_speed=0.05)
 monster_name = "史莱姆"  # 默认为史莱姆
 monster = monster_types["史莱姆"]
 
@@ -25,6 +25,8 @@ threading.Thread(target=switch_monster).start()
 
 last_attack_time = time.time()
 while True:
+    time.sleep(0.1)
+    
     current_time = time.time()
     if current_time - last_attack_time >= hero.attack_speed:
         hero.attack(monster)
@@ -38,4 +40,5 @@ while True:
         # 处理掉落物品
         hero.pick_up_item(item)
         hero.use_item(item)
-        monster = monster_types[monster_name] # 生成一个新的怪物
+        monster = monster_types[monster_name]
+        monster.reset_hp()  # 生成一个新的怪物

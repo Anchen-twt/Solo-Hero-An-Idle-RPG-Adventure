@@ -14,14 +14,16 @@ class Hero:
         self.final_atk = self.level * self.base_atk + self.final_atk_bonus
         self.exp_rate = 1.0  # 经验获得倍率
         self.growth_start_time = time.time()  # 成长开始时间
+        self.poison_start_time = time.time()
         self.output_start_time = time.time()  # 输出开始时间
         self.inventory = []  # 物品栏
-
+    
     def attack(self, monster):
         damage = self.final_atk
         monster.hp -= damage  # 减少怪物生命
         self.exp += damage * self.exp_rate  # 增加经验（根据经验获得倍率）
         self.gold += damage  # 增加金币
+        self.poison_blade(monster)
         self.hunters_might(monster)
         self.slash(monster)
     
@@ -39,20 +41,31 @@ class Hero:
                 self.skill_get += "猎杀之力 "
             if self.level >= 25:
                 self.skill_get += "连斩 "
-                	
+            
     def growth(self):
         if self.level >= 10:  # 如果等级大于等于10，使用成长技能
             current_time = time.time()  # 获取当前时间
             if current_time - self.growth_start_time >= 60:  # 如果距离上次成长超过60秒
                 self.last_skill = "成长"  # 记录使用的技能
                 self.base_atk *= 1.01  # 增加基础攻击1%
-                self.growth_start_time = current_time  # 更新成长时间
+                self.final_atk = self.level * self.base_atk + self.final_atk_bonus
+                self.growth_start_time = current_time  # 更新成长时间  # 更新成长时间
 
     def hunters_might(self, monster):
         if monster.hp <= 0 and self.level >= 15:  # 如果杀死了怪物且等级大于等于15
             self.last_skill = "猎杀之力"  # 记录使用的技能
-            self.final_atk_bonus += 1  # 增加最终攻击
+            self.final_atk_bonus += 0.1  # 增加最终攻击
             self.final_atk = self.level * self.base_atk + self.final_atk_bonus
+    
+    def poison_blade(self, monster): 
+        if self.level >= 20: # 如果等级大于等于20，使用毒刃技能 
+            current_time = time.time() # 获取当前时间 
+            if current_time - self.poison_start_time >= 30: # 如果距离上次使用毒刃超过30秒 
+                self.last_skill = "毒刃" # 记录使用的技能
+                monster.poisoned = True # 让敌人进入中毒状态 
+                monster.poison_damage = self.final_atk * 0.3 # 设置每秒中毒伤害 
+                monster.poison_duration = 10 # 设置中毒持续时间为10秒
+                self.poison_start_time = current_time # 更新毒刃时间
     
     def slash(self, monster):
         if self.level >= 25:  # 如果等级大于等于25，使用连斩技能
@@ -62,14 +75,22 @@ class Hero:
                 self.attack(monster)  # 再攻击一次
                 self.slash(monster)   # 再尝试触发连斩
     
+    def print_progress_bar(self, progress):
+        symbol = '▷'
+        if progress > 0.5:
+            symbol = '▶'
+        percents = round(100.0 * progress, 1)
+        print(f'[{self.exp:.0f}/{self.threshold_exp:.0f}] {symbol} {percents}%')
+
     def output(self):
         current_time = time.time()
         if current_time - self.output_start_time >= 0.3:
             print("\033[2J\033[H")  # 清屏并将光标移动到左上角
             print(f"勇者：{self.name}")
             print(f"等级：{self.level}")
-            progress = int(self.exp / self.threshold_exp * 20)
-            print(f"经验：{self.exp:.2f} [{'#' * progress}{'.' * (20 - progress)}]")
+            progress = self.exp / self.threshold_exp
+            print(f"经验：{self.exp:.2f}")
+            self.print_progress_bar(progress)
             print(f"金币：{self.gold}")
             print(f"攻速：{self.attack_speed:.2f}")
             print(f"基础攻击：{self.base_atk:.2f}")
@@ -81,16 +102,18 @@ class Hero:
             if hasattr(self, 'last_skill'):
                 print(f"使用技能：{self.last_skill}")
             self.output_start_time = current_time
-            
+        
     def use_item(self, item):
         """管理物品效果"""
         if item == "史莱姆球":
-            self.exp_rate += 0.01  # 增加1%经验获得倍率
+            self.exp_rate += 0.1  # 增加10%经验获得倍率
         elif item == "哥布林之斧":
             self.base_atk += 0.1
-        elif item == "巨龙之心":
+        elif item == "龙之心":
+            if "龙之力" not in self.skill_get:
+                self.skill_get += "龙之力 "  # 添加龙之力技能
             chance = random.random()  # 获取随机数
-            count = self.inventory.count("巨龙之心")  # 获取物品个数
+            count = self.inventory.count("龙之心")  # 获取物品个数
             if chance <= 0.015 * count:  # 如果随机数小于等于概率
                 self.last_skill = "龙之心"  # 记录使用的技能
                 self.attack_speed = 0.02  # 设置攻速为0.02s/次
