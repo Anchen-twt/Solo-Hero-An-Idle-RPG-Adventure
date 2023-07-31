@@ -1,3 +1,4 @@
+#pylint:disable=W0201
 #hero.py
 import time
 import random
@@ -18,6 +19,7 @@ class Hero:
         self.base_atk = 10  # 勇者基础攻击
         self.final_atk_bonus = 0  # 勇者最终攻击加成
         self.final_atk = self.level * self.base_atk + self.final_atk_bonus  # 勇者最终攻击
+        self.skill_get = ""
         self.exp_rate = 1.0  # 经验获得倍率
         self.growth_start_time = time.time()  # 成长开始时间
         self.poison_start_time = time.time()  # 毒刃开始时间
@@ -31,6 +33,7 @@ class Hero:
         self.exp += damage * self.exp_rate  # 增加经验（根据经验获得倍率）
         self.gold += damage  # 增加金币
         self.poison_blade(monster)  # 尝试使用毒刃技能
+        self.dragons_might()
         self.hunters_might(monster)  # 尝试使用猎杀之力技能
         self.slash(monster)   # 尝试使用连斩技能
     
@@ -42,14 +45,13 @@ class Hero:
             self.final_atk = self.level *self.base_atk +self.final_atk_bonus   # 更新最终攻击 
             self.exp -= self.threshold_exp   # 减少经验 
             # 处理技能获得 
-            self.skill_get = ""
-            if self.level >= 10:
+            if self.level == 10:
                 self.skill_get += "成长 "
-            if self.level >= 15:
+            if self.level == 15:
                 self.skill_get += "猎杀之力 "
-            if self.level >= 20:
+            if self.level == 20:
                 self.skill_get += "毒刃 "
-            if self.level >= 25:
+            if self.level == 25:
                 self.skill_get += "连斩 "
             
     def growth(self):
@@ -66,7 +68,7 @@ class Hero:
         """使用猎杀之力技能"""
         if monster.hp <=0 and self.level >= 15:   # 如果杀死了怪物且等级大于等于15 
             self.last_skill = "猎杀之力"   # 记录使用的技能 
-            self.final_atk_bonus += 0.1   # 增加最终攻击加成 
+            self.final_atk_bonus += 1   # 增加最终攻击加成 
             self.final_atk = self.level *self.base_atk + self.final_atk_bonus   # 更新最终攻击 
     
     def poison_blade(self, monster): 
@@ -89,22 +91,25 @@ class Hero:
                 self.attack(monster)   # 再攻击一次 
                 self.slash(monster)   # 再尝试触发连斩
     
+    def dragons_might(self):
+        """使用龙之力技能"""
+        chance = random.random()  # 获取随机数
+        count = self.inventory.count("龙之心")  # 获取物品个数
+        if chance <= 0.015 * count:  # 如果随机数小于等于概率
+            self.last_skill = "龙之心"  # 记录使用的技能
+            self.attack_speed = 0.01  # 设置攻速为0.01s/次
+            threading.Timer(5, self.reset_attack_speed).start()
+    
     def use_item(self, item):
         """管理物品效果"""
         if item == "史莱姆球":
             self.exp_rate += 0.1  # 增加10%经验获得倍率
         elif item == "哥布林之斧":
-            self.base_atk += 10  # 增加基础攻击10
+            self.base_atk += 0.1  # 增加基础攻击0.1
         elif item == "龙之心":
             if "龙之力" not in self.skill_get:
                 self.skill_get += "龙之力 "  # 添加龙之力技能
-            chance = random.random()  # 获取随机数
-            count = self.inventory.count("龙之心")  # 获取物品个数
-            if chance <= 0.015 * count:  # 如果随机数小于等于概率
-                self.last_skill = "龙之心"  # 记录使用的技能
-                self.attack_speed = 0.02  # 设置攻速为0.02s/次
-                threading.Timer(5, self.reset_attack_speed).start()
-                
+
     def reset_attack_speed(self):
         """恢复攻速"""
         self.attack_speed = self.default_attack_speed

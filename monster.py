@@ -1,3 +1,4 @@
+#mpnster.py
 import random
 
 class Monster:
@@ -60,4 +61,3 @@ monster_factory = MonsterFactory()
 monster_factory.register_monster("史莱姆", 10000)
 monster_factory.register_monster("哥布林", 20000)
 monster_factory.register_monster("巨龙", 50000)
-
